@@ -9,7 +9,9 @@ import (
 )
 
 const (
-	INDENT = "  "
+	INDENT = "    "
+	MIDDLE_INDICATOR = "├──"
+	END_INDICATOR = "└──"
 )
 
 var (
@@ -20,8 +22,9 @@ func init() {
 	flag.StringVar(&rootPath, "p", "", "The path of target directory.")
 }
 
-func showFiles(basePath string, prefix string, showAll bool) error {
+func showFiles(basePath string, prefix string, middle_inds string, end_inds string, showAll bool) error {
 	base, err := os.Open(basePath)
+	// defer File.Close(base)
 	if err != nil {
 		return err
 	}
@@ -29,7 +32,8 @@ func showFiles(basePath string, prefix string, showAll bool) error {
 	if err != nil {
 		return err
 	}
-	for _, v := range subs {
+	for i:=0; i<len(subs); i++ {
+		v := subs[i]
 		fi := v.(os.FileInfo)
 		fp := fi.Name()
 		if strings.HasPrefix(fp, ".") && !showAll {
@@ -40,13 +44,22 @@ func showFiles(basePath string, prefix string, showAll bool) error {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("%s\n", prefix+fp)
-			err = showFiles(absFp, INDENT+prefix, showAll)
+			if i == (len(subs) - 1) {
+				fmt.Printf("%s\n", end_inds+fp)
+			} else {
+				fmt.Printf("%s\n", middle_inds+fp)
+			}
+			err = showFiles(absFp, INDENT+prefix, INDENT+middle_inds, INDENT+end_inds, showAll)
 			if err != nil {
 				return err
 			}
 		} else {
-			fmt.Printf("%s\n", prefix+fp)
+			if i == (len(subs) - 1) {
+				fmt.Printf("%s\n", end_inds+fp)
+			} else {
+				fmt.Printf("%s\n", middle_inds+fp)
+			}
+			
 		}
 	}
 	return nil
@@ -62,7 +75,7 @@ func main() {
 		rootPath = defaultPath
 	}
 	fmt.Printf("%s\n", rootPath)
-	err := showFiles(rootPath, INDENT, false)
+	err := showFiles(rootPath, INDENT, MIDDLE_INDICATOR, END_INDICATOR, false)
 	if err != nil {
 		fmt.Println("showFilesError:", err)
 	}
