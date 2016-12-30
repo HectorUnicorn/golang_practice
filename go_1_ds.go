@@ -10,6 +10,7 @@ import (
 
 const (
 	INDENT = "    "
+	INDENT_SEP = "│   "
 	MIDDLE_INDICATOR = "├──"
 	END_INDICATOR = "└──"
 )
@@ -22,7 +23,7 @@ func init() {
 	flag.StringVar(&rootPath, "p", "", "The path of target directory.")
 }
 
-func showFiles(basePath string, prefix string, middle_inds string, end_inds string, showAll bool) error {
+func showFiles(basePath string, prefix string, middle_inds string, end_inds string, separator string, showAll bool) error {
 	base, err := os.Open(basePath)
 	// defer File.Close(base)
 	if err != nil {
@@ -44,22 +45,27 @@ func showFiles(basePath string, prefix string, middle_inds string, end_inds stri
 			if err != nil {
 				return err
 			}
+			isLast := false
 			if i == (len(subs) - 1) {
-				fmt.Printf("%s\n", end_inds+fp)
+				fmt.Printf("%s\n", separator+end_inds+fp)
+				isLast = true
 			} else {
-				fmt.Printf("%s\n", middle_inds+fp)
+				fmt.Printf("%s\n", separator+middle_inds+fp)
 			}
-			err = showFiles(absFp, INDENT+prefix, INDENT+middle_inds, INDENT+end_inds, showAll)
+			sep := INDENT_SEP
+			if isLast {
+				sep = INDENT
+			}
+			err = showFiles(absFp, prefix, middle_inds, end_inds, separator+sep, showAll)
 			if err != nil {
 				return err
 			}
 		} else {
 			if i == (len(subs) - 1) {
-				fmt.Printf("%s\n", end_inds+fp)
+				fmt.Printf("%s\n", separator+end_inds+fp)
 			} else {
-				fmt.Printf("%s\n", middle_inds+fp)
+				fmt.Printf("%s\n", separator+middle_inds+fp)
 			}
-			
 		}
 	}
 	return nil
@@ -75,7 +81,7 @@ func main() {
 		rootPath = defaultPath
 	}
 	fmt.Printf("%s\n", rootPath)
-	err := showFiles(rootPath, INDENT, MIDDLE_INDICATOR, END_INDICATOR, false)
+	err := showFiles(rootPath, INDENT_SEP, MIDDLE_INDICATOR, END_INDICATOR, "", false)
 	if err != nil {
 		fmt.Println("showFilesError:", err)
 	}
